@@ -1,0 +1,9 @@
+{
+  "name": "common",
+  "main": "main.ts",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@mfro/ts-common": "mfro/ts-common"
+  }
+}
