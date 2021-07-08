@@ -11,12 +11,14 @@
         <v-card grow style="overflow: hidden">
           <div style="height: 100%; overflow-y: scroll">
             <v-flex column>
+              <!-- <keep-alive> -->
               <expense
                 v-for="expense in sorted"
                 :key="expense"
                 :expense="expense"
                 :editing="editing"
               />
+              <!-- </keep-alive> -->
             </v-flex>
           </div>
 
@@ -61,10 +63,11 @@ export default {
     const filter = {
       include: shallowReactive(new Set()),
       exclude: shallowReactive(new Set()),
-      result: computed(() => props.money.expenses.filter(e => {
+      match: (e) => {
         return ([...filter.include].every(t => e.tags.has(t)))
           && ([...filter.exclude].every(t => !e.tags.has(t)));
-      })),
+      },
+      result: computed(() => props.money.expenses.filter(e => filter.match(e))),
     };
 
     const cacheData = {
@@ -97,7 +100,8 @@ export default {
     const editing = shallowReactive(new Set);
 
     const sorted = computed(() => {
-      return [...props.money.expenses].reverse();
+      return [...props.money.expenses].reverse()
+        // .filter((e) => filter.match(e));
     });
 
     return {

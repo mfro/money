@@ -9,9 +9,7 @@
     "
   >
     <v-flex justify-start align-center class="date">
-      <div class="date-actual">
-        <date :value="expense.transaction.date" />
-      </div>
+      <date :value="expense.transaction.date" />
     </v-flex>
 
     <v-flex justify-end align-center class="money">
@@ -55,8 +53,7 @@ export default {
     const filter = inject('filter');
 
     const visible = computed(() => {
-      return !money.expenses.includes(props.expense)
-        || filter.result.value.includes(props.expense);
+      return filter.match(props.expense);
     });
 
     return {

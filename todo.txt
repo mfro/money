@@ -1,2 +1,3 @@
 date range filtering
 date graphs
+text filter
