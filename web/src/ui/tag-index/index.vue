@@ -1,6 +1,6 @@
 <template>
   <v-flex column style="height: 100%; overflow: hidden">
-    <v-flex column style="overflow-y: scroll">
+    <v-flex column style="overflow-y: scroll;overflow-x: hidden;">
       <tag-index-entry
         v-for="tag in tags"
         :key="tag"

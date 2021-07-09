@@ -1,14 +1,16 @@
 import { Chart, registerables } from 'chart.js';
 import csv from 'csv-parse/lib/sync'
-import { ComputedRef, createApp, shallowReactive, watchEffect } from 'vue'
+import { computed, ComputedRef, createApp, shallowReactive, shallowRef, watchEffect } from 'vue'
 import { framework } from '@mfro/vue-ui'
 import { assert } from '@mfro/ts-common/assert';
 
 import App from './main.vue'
 import * as storage from './storage';
-import { Tag, Money, Expense, Data } from 'common';
+import { Tag, Money, Expense, Data, Date } from 'common';
 
-const rawData = require('/home/mfro/home/Downloads/money - raw.csv').default;
+// const rawData = require('/home/mfro/home/Downloads/money - raw.csv').default;
+
+Chart.register(...registerables);
 
 export interface Cache {
   byTag(tag: Tag): { total: Money };
@@ -18,10 +20,11 @@ export interface Cache {
 export interface Filter {
   include: Set<Tag>;
   exclude: Set<Tag>;
-  result: ComputedRef<Expense[]>;
+  before: Date | null;
+  after: Date | null;
+  match: (e: Expense) => boolean;
+  result: Expense[];
 }
-
-Chart.register(...registerables);
 
 const money: Data = {
   tags: shallowReactive([]),
@@ -33,7 +36,6 @@ storage.load(money);
 
 for (const t of money.transactions) {
   if (money.expenses.find(e => e.transaction == t)) continue;
-
   money.expenses.push({ transaction: t, tags: new Set(), details: '' });
 }
 
@@ -46,67 +48,58 @@ watchEffect(() => {
   storage.save(money);
 });
 
+const filter: Filter = shallowReactive({
+  include: shallowReactive(new Set()),
+  exclude: shallowReactive(new Set()),
+  before: null,
+  after: null,
+
+  match: (e) => {
+    return ([...filter.include].every(t => e.tags.has(t)))
+      && ([...filter.exclude].every(t => !e.tags.has(t)))
+      && (filter.before == null || Date.lt(e.transaction.date, filter.before) || Date.eq(e.transaction.date, filter.before))
+      && (filter.after == null || Date.lt(filter.after, e.transaction.date) || Date.eq(filter.after, e.transaction.date));
+  },
+  result: [],
+});
+
+watchEffect(() => filter.result = money.expenses.filter(e => filter.match(e)));
+
+const cacheData = {
+  byTag: computed(() => {
+    const map = new Map();
+    for (const expense of money.expenses) {
+      for (const tag of expense.tags) {
+        let entry = map.get(tag);
+        if (!entry) map.set(tag, entry = { total: { cents: 0 } });
+        entry.total.cents += expense.transaction.value.cents;
+      }
+    }
+    return map;
+  }),
+
+  byTagFiltered: computed(() => {
+    const map = new Map();
+    for (const expense of filter.result) {
+      for (const tag of expense.tags) {
+        let entry = map.get(tag);
+        if (!entry) map.set(tag, entry = { total: { cents: 0 } });
+        entry.total.cents += expense.transaction.value.cents;
+      }
+    }
+    return map;
+  }),
+};
+
+const cache: Cache = {
+  byTag: (tag) => cacheData.byTag.value.get(tag) ?? { total: { cents: 0 } },
+  byTagFiltered: (tag) => cacheData.byTagFiltered.value.get(tag) ?? { total: { cents: 0 } },
+};
+
 const app = createApp(App, {
   money,
-
-  async load(file: File, canvas: HTMLCanvasElement, filter: Filter, cache: Cache) {
-    // const text = await file.text();
-
-    // const rows: string[][] = csv(rawData, {
-    //   from_line: 2,
-    // });
-
-    // const loaded = rows.map(row => Transaction.load(row));
-    // money.transactions.push(...loaded);
-    let chart: Chart | undefined;
-
-    watchEffect(() => {
-      chart?.destroy();
-
-      const context = canvas.getContext('2d');
-      assert(context != null, 'context');
-
-      const src = money.tags
-        .filter(tag => !filter.include.has(tag))
-        .map(t => [t, cache.byTagFiltered(t)] as const)
-        .filter(([tag, info]) => info.total.cents != 0)
-        .map(([tag, info]) => [tag.value, -info.total.cents / 100] as const)
-        .sort((a, b) => b[1] - a[1]);
-
-      const labels = src.map(v => v[0]);
-      const data = src.map(v => v[1]);
-
-      const bounds = canvas.getBoundingClientRect()
-
-      chart = new Chart(context, {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: 'money',
-            data,
-            backgroundColor: [
-              // '#a50026',
-              // '#d73027',
-              // '#f46d43',
-              // '#fdae61',
-              // '#fee08b',
-              // '#ffffbf',
-              // '#d9ef8b',
-              // '#a6d96a',
-              // '#66bd63',
-              '#1a9850',
-              // '#006837',
-            ],
-          }],
-        },
-        options: {
-          aspectRatio: bounds.width / bounds.height,
-          indexAxis: 'y',
-        },
-      });
-    });
-  },
+  cache,
+  filter
 });
 
 app.use(framework);
