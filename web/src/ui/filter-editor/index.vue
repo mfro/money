@@ -1,28 +1,49 @@
 <template>
-  <v-dialog :modelValue="editing != null" @update:modelValue="editing = null">
+  <v-dialog
+    :modelValue="editingDate != null"
+    @update:modelValue="editingDate = null"
+  >
     <v-card class="pb-4">
       <v-text-field
-        v-model="input"
-        ref="textField"
+        v-model="dateInput"
+        ref="dateTextField"
         label="mm/dd/yyyy"
-        @keydown="$event.keyCode == 13 && (editing = null)"
+        @keydown="$event.keyCode == 13 && (editingDate = null)"
       />
     </v-card>
   </v-dialog>
 
   <v-flex>
-    <v-button x-small @click="editDate('before')">
+    <v-button
+      x-small
+      @click="editDate('before')"
+      :color="filter.before ? 'primary' : 'default'"
+    >
       <span>
         Before
         <date v-if="filter.before" :value="filter.before" />
       </span>
     </v-button>
 
-    <v-button x-small class="ml-3" @click="editDate('after')">
+    <v-button
+      x-small
+      class="ml-3"
+      @click="editDate('after')"
+      :color="filter.after ? 'primary' : 'default'"
+    >
       <span>
         After
         <date v-if="filter.after" :value="filter.after" />
       </span>
+    </v-button>
+
+    <v-button
+      x-small
+      class="ml-3"
+      @click="filter.exact = !filter.exact"
+      :color="filter.exact ? 'primary' : 'default'"
+    >
+      <span>exact</span>
     </v-button>
   </v-flex>
 </template>
@@ -44,32 +65,34 @@ export default {
   },
 
   setup(props) {
-    const editing = shallowRef(null);
-    const input = shallowRef(null);
-    const textField = shallowRef(null);
+    const editingDate = shallowRef(null);
+    const dateInput = shallowRef(null);
+    const dateTextField = shallowRef(null);
+    const exactCheckbox = shallowRef(null);
 
-    watch(editing, (v, old) => {
+    watch(editingDate, (v, old) => {
       if (v == null) {
         try {
-          const date = Date.load(input.value);
+          const date = Date.load(dateInput.value);
           props.filter[old] = date;
         } catch { }
-        input.value = '';
+        dateInput.value = '';
       } else {
         setImmediate(() => {
-          textField.value.focus();
+          dateTextField.value.focus();
         });
       }
     });
 
     return {
-      input,
-      textField,
-      editing,
+      dateInput,
+      dateTextField,
+      editingDate,
+      exactCheckbox,
 
       editDate(key) {
         if (props.filter[key] === null) {
-          editing.value = key;
+          editingDate.value = key;
         } else {
           props.filter[key] = null;
         }
@@ -78,3 +101,12 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.exact-box {
+  cursor: pointer;
+  > * {
+    cursor: pointer;
+  }
+}
+</style>

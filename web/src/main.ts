@@ -18,6 +18,7 @@ export interface Cache {
 }
 
 export interface Filter {
+  exact: boolean;
   include: Set<Tag>;
   exclude: Set<Tag>;
   before: Date | null;
@@ -49,6 +50,7 @@ watchEffect(() => {
 });
 
 const filter: Filter = shallowReactive({
+  exact: false,
   include: shallowReactive(new Set()),
   exclude: shallowReactive(new Set()),
   before: null,
@@ -57,6 +59,7 @@ const filter: Filter = shallowReactive({
   match: (e) => {
     return ([...filter.include].every(t => e.tags.has(t)))
       && ([...filter.exclude].every(t => !e.tags.has(t)))
+      && (!filter.exact || e.tags.size == filter.include.size)
       && (filter.before == null || Date.lt(e.transaction.date, filter.before) || Date.eq(e.transaction.date, filter.before))
       && (filter.after == null || Date.lt(filter.after, e.transaction.date) || Date.eq(filter.after, e.transaction.date));
   },

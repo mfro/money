@@ -5,12 +5,15 @@ import { assert } from '@mfro/ts-common/assert';
 import { Data } from 'common';
 import { Filter, Cache } from './main';
 
-export type GraphType = 'tag' | 'date';
+export type GraphType = 'tag' | 'month' | 'day';
 
 export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphType>, money: Data, filter: Filter, cache: Cache) {
   let chart: Chart<any> | undefined;
 
-  watchEffect(() => {
+  watchEffect(render);
+  window.addEventListener('resize', render);
+
+  function render() {
     chart?.destroy();
 
     if (!canvas.value || !type.value) return;
@@ -24,8 +27,8 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
         .filter(tag => !filter.include.has(tag))
         .map(t => [t, cache.byTagFiltered(t)] as const)
         .filter(([tag, info]) => info.total.cents != 0)
-        .map(([tag, info]) => [tag.value, -info.total.cents / 100] as const)
-        .sort((a, b) => b[1] - a[1]);
+        .map(([tag, info]) => [tag.value, info.total.cents / 100] as const)
+        .sort((a, b) => a[1] - b[1]);
 
       const labels = src.map(v => v[0]);
       const data = src.map(v => v[1]);
@@ -67,17 +70,20 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
       //   .sort((a, b) => b[1] - a[1]);
 
       for (const expense of filter.result) {
-        const date = new Date(expense.transaction.date.year, expense.transaction.date.month - 1, expense.transaction.date.day);
+        const date = type.value == 'day'
+          ? new Date(expense.transaction.date.year, expense.transaction.date.month - 1, expense.transaction.date.day)
+          : new Date(expense.transaction.date.year, expense.transaction.date.month - 1);
+
         const month = date.toLocaleDateString(undefined, {
           year: 'numeric',
           month: 'short',
-          day: 'numeric',
+          day: type.value == 'day' ? 'numeric' : undefined,
         });
 
         let info = months.get(month);
         if (!info) months.set(month, info = { date, value: 0 });
 
-        info.value -= expense.transaction.value.cents;
+        info.value += expense.transaction.value.cents;
       }
 
       const src = [...months].sort((a, b) => a[1].date.valueOf() - b[1].date.valueOf());
@@ -113,5 +119,5 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
         },
       });
     }
-  });
+  }
 }

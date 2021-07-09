@@ -2,7 +2,7 @@
   <v-app>
     <v-flex grow class="pa-2" style="height: 100%; overflow: hidden">
       <v-flex column class="mr-2" style="height: 100%; overflow: hidden">
-        <v-card style="height: 100%; overflow: hidden">
+        <v-card style="max-height: 100%; overflow: hidden">
           <tag-index :editing="editing" />
         </v-card>
       </v-flex>
@@ -72,10 +72,19 @@
             <v-button
               small
               class="ml-2"
-              :color="graphType == 'date' ? 'primary' : 'default'"
-              @click="graphType = 'date'"
+              :color="graphType == 'month' ? 'primary' : 'default'"
+              @click="graphType = 'month'"
             >
-              Dates
+              Months
+            </v-button>
+
+            <v-button
+              small
+              class="ml-2"
+              :color="graphType == 'day' ? 'primary' : 'default'"
+              @click="graphType = 'day'"
+            >
+              Days
             </v-button>
           </v-flex>
 

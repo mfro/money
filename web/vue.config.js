@@ -27,6 +27,9 @@ module.exports = {
   },
 
   configureWebpack: {
+    resolve: {
+      symlinks: false,
+    },
     plugins: [
       new ProvidePlugin({
         Chart: ['chart.js', 'Chart'],
