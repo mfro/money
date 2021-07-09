@@ -12,6 +12,7 @@ const rawData = require('/home/mfro/home/Downloads/money - raw.csv').default;
 
 export interface Cache {
   byTag(tag: Tag): { total: Money };
+  byTagFiltered(tag: Tag): { total: Money };
 }
 
 export interface Filter {
@@ -67,7 +68,7 @@ const app = createApp(App, {
 
       const src = money.tags
         .filter(tag => !filter.include.has(tag))
-        .map(t => [t, cache.byTag(t)] as const)
+        .map(t => [t, cache.byTagFiltered(t)] as const)
         .filter(([tag, info]) => info.total.cents != 0)
         .map(([tag, info]) => [tag.value, -info.total.cents / 100] as const)
         .sort((a, b) => b[1] - a[1]);

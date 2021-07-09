@@ -1,11 +1,13 @@
 <template>
-  <v-flex column>
-    <tag-index-entry
-      v-for="tag in tags"
-      :key="tag"
-      :tag="tag"
-      :editing="editing"
-    />
+  <v-flex column style="height: 100%; overflow: hidden">
+    <v-flex column style="overflow-y: scroll">
+      <tag-index-entry
+        v-for="tag in tags"
+        :key="tag"
+        :tag="tag"
+        :editing="editing"
+      />
+    </v-flex>
 
     <v-flex
       class="pa-2"
@@ -59,8 +61,8 @@ export default {
 
     const tags = computed(() => {
       return [...money.tags].sort((a, b) => {
-        const aTotal = cache.byTag(a).total;
-        const bTotal = cache.byTag(b).total;
+        const aTotal = cache.byTagFiltered(a).total;
+        const bTotal = cache.byTagFiltered(b).total;
 
         if (aTotal.cents != bTotal.cents)
           return aTotal.cents - bTotal.cents;

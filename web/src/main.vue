@@ -2,7 +2,7 @@
   <v-app>
     <v-flex grow class="pa-2" style="height: 100%; overflow: hidden">
       <v-flex column class="mr-2" style="height: 100%; overflow: hidden">
-        <v-card>
+        <v-card style="height: 100%; overflow: hidden">
           <tag-index :editing="editing" />
         </v-card>
       </v-flex>
@@ -73,6 +73,18 @@ export default {
     const cacheData = {
       byTag: computed(() => {
         const map = new Map();
+        for (const expense of props.money.expenses) {
+          for (const tag of expense.tags) {
+            const entry = map.get(tag);
+            if (!entry) map.set(tag, entry = { total: { cents: 0 } });
+            entry.total.cents += expense.transaction.value.cents;
+          }
+        }
+        return map;
+      }),
+
+      byTagFiltered: computed(() => {
+        const map = new Map();
         for (const expense of filter.result.value) {
           for (const tag of expense.tags) {
             const entry = map.get(tag);
@@ -86,6 +98,7 @@ export default {
 
     const cache = {
       byTag: (tag) => cacheData.byTag.value.get(tag) ?? { total: { cents: 0 } },
+      byTagFiltered: (tag) => cacheData.byTagFiltered.value.get(tag) ?? { total: { cents: 0 } },
     };
 
     provide('money', props.money);

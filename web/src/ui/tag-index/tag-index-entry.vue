@@ -20,7 +20,15 @@
 
     <v-flex grow />
 
-    <money :value="total" class="mr-1" />
+    <template v-if="total.cents != 0">
+      <money :value="currentTotal" class="mr-1" />
+    </template>
+
+    <template v-else>
+      <v-button x-small icon class="mr-1 delete" @click="del()">
+        <v-icon color="error">delete</v-icon>
+      </v-button>
+    </template>
 
     <template v-if="editing.size > 0">
       <v-button x-small icon class="mr-1" @click="toggleEdit()">
@@ -56,12 +64,18 @@ export default {
       return cache.byTag(props.tag).total;
     });
 
+    const currentTotal = computed(() => {
+      return cache.byTagFiltered(props.tag).total;
+    });
+
     const removeTag = computed(() => {
       return [...props.editing].every((e) => e.tags.has(props.tag))
     });
 
     return {
       total,
+      currentTotal,
+
       filter,
       removeTag,
 
@@ -88,3 +102,16 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.tag {
+  .delete {
+    opacity: 0;
+    transition: opacity 80ms;
+  }
+
+  &:hover .delete {
+    opacity: 1;
+  }
+}
+</style>
