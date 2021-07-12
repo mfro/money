@@ -12,25 +12,6 @@ import * as storage from './storage';
 const content: Ref<string | null> = shallowRef(null);
 
 async function test() {
-  // const clientSecret = 'jgcyyRgeE1Fnvnv4n0TvNlCI';
-
-  // gapi.load('client:auth2', async () => {
-  //   await gapi.client.init({
-  //     scope: 'https://www.googleapis.com/auth/drive',
-  //     clientId: '512069470809-l4ukcrbu8o9mt8bf0p4u3g9hqvgsjji5.apps.googleusercontent.com',
-  //     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-  //   });
-
-  //   const auth = gapi.auth2.getAuthInstance();
-
-  //   const user = await auth.signIn();
-
-  //   const response = await gapi.client.drive.files.get({
-  //     fileId: '12blVzVR0E0m-7LWgSl3Clzot549v2dYX',
-  //     alt: 'media',
-  //   });
-  // });
-
   const raw = await backend.load('money');
   content.value = raw && raw.toString('utf8');
 
