@@ -5,6 +5,17 @@
         <v-card style="max-height: 100%; overflow: hidden">
           <tag-index :editing="editing" />
         </v-card>
+
+        <v-flex>
+          <v-button
+            :disabled="!hasChanges.value"
+            color="primary"
+            class="mt-2"
+            @click="save()"
+          >
+            save
+          </v-button>
+        </v-flex>
       </v-flex>
 
       <v-flex column>
@@ -122,6 +133,8 @@ export default {
     money: Object,
     cache: Object,
     filter: Object,
+    hasChanges: Object,
+    save: Function,
   },
 
   setup(props) {

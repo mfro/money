@@ -28,6 +28,7 @@
   },
   "include": [
     "../**/*.ts",
+    "../node_modules/@types/gapi*/**/*.ts"
   ],
   "exclude": [
     "node_modules"

@@ -1,4 +1,4 @@
 {
   "private": true,
-  "workspaces": ["common", "pdf-import", "web"]
+  "workspaces": ["common", "pdf-import", "web", "github-auth-proxy"]
 }

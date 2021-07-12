@@ -10,7 +10,7 @@ export type GraphType = 'tag' | 'month' | 'day';
 export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphType>, money: Data, filter: Filter, cache: Cache) {
   let chart: Chart<any> | undefined;
 
-  watchEffect(render);
+  watchEffect(render, { flush: 'post' });
   window.addEventListener('resize', render);
 
   function render() {
