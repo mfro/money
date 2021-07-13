@@ -1,7 +1,9 @@
 import { assert } from '@mfro/ts-common/assert';
-import { Octokit } from '@octokit/rest';
+import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
 
 const clientId = '70e7cbe421d5790c41b0';
+
+type User = RestEndpointMethodTypes["users"]["getAuthenticated"]["response"]["data"];
 
 interface GithubAuthorization {
   access_token: string;
@@ -11,21 +13,22 @@ interface GithubAuthorization {
 
 interface Context {
   api: Octokit;
-  user: string;
+  auth: GithubAuthorization;
+  user: User;
   filePath: string;
   fileHash: string | null;
 }
 
-function authStrategy(context: GithubAuthorization) {
+let context: Context | undefined;
+
+function authStrategy(auth: GithubAuthorization) {
   return {
     hook: (request: Function, options: any) => {
-      options.headers['authorization'] = `Bearer ${context.access_token}`;
+      options.headers['authorization'] = `Bearer ${auth.access_token}`;
       return request(options);
     },
   };
 }
-
-let context: Context | undefined;
 
 export async function load(filePath: string) {
   assert(context === undefined, 're-init');
@@ -72,7 +75,8 @@ export async function load(filePath: string) {
 
     context = {
       api,
-      user: user.login,
+      auth,
+      user,
       filePath,
       fileHash,
     };
@@ -80,7 +84,7 @@ export async function load(filePath: string) {
     return content;
   } else {
     const url = new URL('https://github.com/login/oauth/authorize');
-    url.searchParams.set('scope', 'repo');
+    url.searchParams.set('scope', 'repo read:user user:email');
     url.searchParams.set('client_id', clientId);
     url.searchParams.set('redirect_uri', `http://localhost:8080/oauth-callback`);
 
@@ -93,19 +97,24 @@ export async function save(content: Buffer) {
   assert(context !== undefined, 'not init');
   const { api, user, filePath, fileHash } = context;
 
-  const options = {
-    owner: user,
+  const { data: result } = await api.repos.createOrUpdateFileContents({
+    owner: user.login,
     repo: 'mfro-backend',
     path: filePath,
-    message: 'test message',
+    message: `update ${filePath}`,
     content: content.toString('base64'),
-  };
+    sha: fileHash ?? undefined,
+    author: {
+      name: 'mfro github backend',
+      email: 'backend@mfro.me',
+    },
+    committer: {
+      name: user.name!,
+      email: user.email!,
+    },
+  });
 
-  if (fileHash != null) {
-    Object.assign(options, { sha: fileHash });
-  }
-
-  await api.repos.createOrUpdateFileContents(options);
+  context.fileHash = result.content?.sha ?? null;
 }
 
 // export async function getFile(path: string) {

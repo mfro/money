@@ -72,20 +72,7 @@ function loadV2(src: V2, data: Data) {
   data.expenses.push(...expenses);
 }
 
-export function load(data: Data) {
-  const text = localStorage.getItem('mfro:money-save');
-  if (text != null) {
-    const { version, ...src } = JSON.parse(text);
-
-    if (version === 2) return loadV2(src, data);
-    if (version === 1) return loadV1(src, data);
-    if (version === undefined) return loadV0(src, data);
-
-    assert(false, `invalid version: ${version}`);
-  }
-}
-
-export function load2(data: Data, raw: string | null) {
+export function load(data: Data, raw: string | null) {
   if (raw != null) {
     const { version, ...src } = JSON.parse(raw);
 
@@ -98,31 +85,6 @@ export function load2(data: Data, raw: string | null) {
 }
 
 export function save(data: Data) {
-  const version = 2;
-
-  const transactions = data.transactions.map(t => ({
-    date: t.date,
-    value: t.value,
-    description: t.description,
-    category: t.category,
-    balance: t.balance,
-  }));
-
-  const tags = data.tags.map(t => ({
-    value: t.value,
-  }));
-
-  const expenses = data.expenses.map(e => ({
-    transaction: data.transactions.indexOf(e.transaction),
-    tags: [...e.tags].map(t => data.tags.indexOf(t)),
-    details: e.details,
-  }));
-
-  const saved = JSON.stringify({ transactions, tags, expenses, version });
-  localStorage.setItem('mfro:money-save', saved);
-}
-
-export function save2(data: Data) {
   const version = 2;
 
   const transactions = data.transactions.map(t => ({

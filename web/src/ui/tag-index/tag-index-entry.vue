@@ -56,7 +56,7 @@ export default {
   },
 
   setup(props) {
-    const money = inject('money');
+    const data = inject('data');
     const cache = inject('cache');
     const filter = inject('filter');
 
@@ -95,8 +95,8 @@ export default {
       },
 
       del() {
-        const index = money.tags.indexOf(props.tag);
-        money.tags.splice(index, 1);
+        const index = data.tags.indexOf(props.tag);
+        data.tags.splice(index, 1);
       },
     };
   },

@@ -49,7 +49,7 @@ export default {
   },
 
   setup(props) {
-    const money = inject('money');
+    const data = inject('data');
     const filter = inject('filter');
 
     const visible = computed(() => {
@@ -61,8 +61,8 @@ export default {
       visible,
 
       del() {
-        const index = money.expenses.indexOf(props.expense);
-        money.expenses.splice(index, 1);
+        const index = data.expenses.indexOf(props.expense);
+        data.expenses.splice(index, 1);
       },
     };
   },

@@ -8,10 +8,10 @@
 
         <v-flex>
           <v-button
-            :disabled="!hasChanges.value"
+            :disabled="!storage.changes"
             color="primary"
             class="mt-2"
-            @click="save()"
+            @click="storage.save()"
           >
             save
           </v-button>
@@ -74,8 +74,8 @@
           <v-flex>
             <v-button
               small
-              :color="graphType == 'tag' ? 'primary' : 'default'"
-              @click="graphType = 'tag'"
+              :color="graph.type == 'tag' ? 'primary' : 'default'"
+              @click="graph.type = 'tag'"
             >
               Tags
             </v-button>
@@ -83,8 +83,8 @@
             <v-button
               small
               class="ml-2"
-              :color="graphType == 'month' ? 'primary' : 'default'"
-              @click="graphType = 'month'"
+              :color="graph.type == 'month' ? 'primary' : 'default'"
+              @click="graph.type = 'month'"
             >
               Months
             </v-button>
@@ -92,14 +92,14 @@
             <v-button
               small
               class="ml-2"
-              :color="graphType == 'day' ? 'primary' : 'default'"
-              @click="graphType = 'day'"
+              :color="graph.type == 'day' ? 'primary' : 'default'"
+              @click="graph.type = 'day'"
             >
               Days
             </v-button>
           </v-flex>
 
-          <canvas style="flex: 1" ref="canvas" />
+          <canvas style="flex: 1" :ref="e => graph.canvas = e" />
         </v-flex>
       </v-flex>
     </v-flex>
@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import { computed, provide, shallowReactive, shallowRef, watch, watchEffect } from 'vue';
+import { computed, inject, shallowReactive, shallowRef, watch } from 'vue';
 import { Date } from 'common';
 
 import TagIndex from './ui/tag-index';
@@ -116,8 +116,6 @@ import FilterEditor from './ui/filter-editor';
 import date from './ui/date';
 import money from './ui/money';
 import expense from './ui/expense';
-
-import { initGraph } from './graph';
 
 export default {
   name: 'app',
@@ -129,64 +127,24 @@ export default {
     expense,
   },
 
-  props: {
-    money: Object,
-    cache: Object,
-    filter: Object,
-    hasChanges: Object,
-    save: Function,
-  },
-
   setup(props) {
-    provide('money', props.money);
-    provide('cache', props.cache);
-    provide('filter', props.filter);
-
-    const editingDate = shallowRef(null);
-    const dateInput = shallowRef(null);
-    const dateInputField = shallowRef(null);
-
-    watch(editingDate, (v, old) => {
-      if (v == null) {
-        try {
-          const date = Date.load(dateInput.value);
-          props.filter[old] = date;
-        } catch { }
-        dateInput.value = '';
-      } else {
-        setImmediate(() => {
-          dateInputField.value.focus();
-        });
-      }
-    });
-
-    const canvas = shallowRef(null);
-    const graphType = shallowRef('tag');
-    initGraph(canvas, graphType, props.money, props.filter, props.cache);
+    const data = inject('data');
+    const storage = inject('storage');
+    const filter = inject('filter');
+    const cache = inject('cache');
+    const graph = inject('graph');
 
     const editing = shallowReactive(new Set);
 
     const sorted = computed(() => {
-      return [...props.money.expenses].reverse()
+      return [...data.expenses].reverse()
       // .filter((e) => filter.match(e));
     });
 
     return {
-      canvas,
+      data, cache, filter, storage, graph,
       editing,
       sorted,
-      graphType,
-      dateInput,
-      dateInputField,
-      editingDate,
-
-      editDate(key) {
-        if (props.filter[key] === null) {
-          editingDate.value = key;
-        } else {
-          props.filter[key] = null;
-        }
-      },
     };
   },
 };

@@ -1,29 +1,44 @@
-import { Chart } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
 import { Ref, watchEffect } from 'vue';
 import { assert } from '@mfro/ts-common/assert';
-
 import { Data } from 'common';
-import { Filter, Cache } from './main';
+
+import { Filter } from './filter';
+import { Cache } from './cache';
+import { myReactive } from '@/main';
+
+Chart.register(...registerables);
+
+export interface Graph {
+  type: GraphType;
+  canvas: HTMLCanvasElement | null;
+}
 
 export type GraphType = 'tag' | 'month' | 'day';
 
-export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphType>, money: Data, filter: Filter, cache: Cache) {
+export function initGraph(data: Data, filter: Filter, cache: Cache) {
   let chart: Chart<any> | undefined;
+  let graph: Graph = myReactive({
+    type: 'tag',
+    canvas: null,
+  });
 
   watchEffect(render, { flush: 'post' });
   window.addEventListener('resize', render);
 
+  return graph;
+
   function render() {
     chart?.destroy();
 
-    if (!canvas.value || !type.value) return;
+    if (!graph.canvas || !graph.type) return;
 
-    const bounds = canvas.value.getBoundingClientRect()
-    const context = canvas.value.getContext('2d');
+    const bounds = graph.canvas.getBoundingClientRect()
+    const context = graph.canvas.getContext('2d');
     assert(context != null, 'context');
 
-    if (type.value == 'tag') {
-      const src = money.tags
+    if (graph.type == 'tag') {
+      const src = data.tags
         .filter(tag => !filter.include.has(tag))
         .map(t => [t, cache.byTagFiltered(t)] as const)
         .filter(([tag, info]) => info.total.cents != 0)
@@ -31,7 +46,7 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
         .sort((a, b) => a[1] - b[1]);
 
       const labels = src.map(v => v[0]);
-      const data = src.map(v => v[1]);
+      const values = src.map(v => v[1]);
 
       chart = new Chart(context, {
         type: 'bar',
@@ -39,7 +54,7 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
           labels,
           datasets: [{
             label: 'money',
-            data,
+            data: values,
             backgroundColor: [
               // '#a50026',
               // '#d73027',
@@ -62,22 +77,16 @@ export async function initGraph(canvas: Ref<HTMLCanvasElement>, type: Ref<GraphT
       });
     } else {
       const months = new Map<string, { date: Date, value: number }>();
-      // const src = money.tags
-      //   .filter(tag => !filter.include.has(tag))
-      //   .map(t => [t, cache.byTagFiltered(t)] as const)
-      //   .filter(([tag, info]) => info.total.cents != 0)
-      //   .map(([tag, info]) => [tag.value, -info.total.cents / 100] as const)
-      //   .sort((a, b) => b[1] - a[1]);
 
       for (const expense of filter.result) {
-        const date = type.value == 'day'
+        const date = graph.type == 'day'
           ? new Date(expense.transaction.date.year, expense.transaction.date.month - 1, expense.transaction.date.day)
           : new Date(expense.transaction.date.year, expense.transaction.date.month - 1);
 
         const month = date.toLocaleDateString(undefined, {
           year: 'numeric',
           month: 'short',
-          day: type.value == 'day' ? 'numeric' : undefined,
+          day: graph.type == 'day' ? 'numeric' : undefined,
         });
 
         let info = months.get(month);

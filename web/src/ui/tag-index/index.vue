@@ -55,12 +55,12 @@ export default {
   setup() {
     const input = shallowRef('');
 
-    const money = inject('money');
+    const data = inject('data');
     const cache = inject('cache');
     const filter = inject('filter');
 
     const tags = computed(() => {
-      return [...money.tags].sort((a, b) => {
+      return [...data.tags].sort((a, b) => {
         const aTotal = cache.byTagFiltered(a).total;
         const bTotal = cache.byTagFiltered(b).total;
 
@@ -78,7 +78,7 @@ export default {
 
       submit() {
         const tag = { value: input.value };
-        money.tags.push(tag);
+        data.tags.push(tag);
 
         input.value = '';
       },
