@@ -1,5 +1,5 @@
 import { Chart, registerables } from 'chart.js';
-import { Ref, watchEffect } from 'vue';
+import { watchEffect } from 'vue';
 import { assert } from '@mfro/ts-common/assert';
 import { Data } from 'common';
 

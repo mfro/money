@@ -8,7 +8,7 @@
 
         <v-flex>
           <v-button
-            :disabled="!storage.changes"
+            :disabled="!canSave"
             color="primary"
             class="mt-2"
             @click="storage.save()"
@@ -108,14 +108,15 @@
 </template>
 
 <script>
-import { computed, inject, shallowReactive, shallowRef, watch } from 'vue';
-import { Date } from 'common';
+import { computed, inject, shallowReactive } from 'vue';
 
 import TagIndex from './ui/tag-index';
 import FilterEditor from './ui/filter-editor';
 import date from './ui/date';
 import money from './ui/money';
 import expense from './ui/expense';
+
+import { StorageState } from './modules/storage';
 
 export default {
   name: 'app',
@@ -134,6 +135,10 @@ export default {
     const cache = inject('cache');
     const graph = inject('graph');
 
+    const canSave = computed(() => {
+      return storage.state == StorageState.changed;
+    });
+
     const editing = shallowReactive(new Set);
 
     const sorted = computed(() => {
@@ -143,6 +148,7 @@ export default {
 
     return {
       data, cache, filter, storage, graph,
+      canSave,
       editing,
       sorted,
     };

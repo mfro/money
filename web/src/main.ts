@@ -6,10 +6,10 @@ import { Data } from 'common';
 
 import App from './main.vue'
 
-import { initStorage } from './app/storage';
-import { initFilter } from './app/filter';
-import { initCache } from './app/cache';
-import { initGraph } from './app/graph';
+import { initStorage, StorageState } from './modules/storage';
+import { initFilter } from './modules/filter';
+import { initCache } from './modules/cache';
+import { initGraph } from './modules/graph';
 
 export function myReactive<T extends object>(arg: T): ShallowUnwrapRef<T> {
   return shallowReactive(proxyRefs(arg));
@@ -37,3 +37,10 @@ app.provide('cache', cache);
 app.provide('graph', graph);
 
 app.mount('#app');
+
+window.addEventListener('beforeunload', e => {
+  if (storage.state == StorageState.changed || storage.state == StorageState.saving) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
