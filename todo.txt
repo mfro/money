@@ -1,0 +1,5 @@
+more flexibler date chart
+text filter
+comparison in chart
+  - by date with stacked colors for different tags
+  - by tags with stacked colors for different date
