@@ -146,6 +146,13 @@ export namespace Transaction {
 
     return lower;
   }
+
+  export function eq(a: Transaction, b: Transaction) {
+    return Date.eq(a.date, b.date)
+      && a.description == b.description
+      && Money.eq(a.value, b.value)
+      && Money.eq(a.balance, b.balance);
+  }
 }
 
 // eg: takeout, fun, required, health

@@ -1,4 +1,3 @@
-import csv from 'csv-parse/lib/sync'
 import { createApp, proxyRefs, shallowReactive, ShallowUnwrapRef } from 'vue'
 import { framework } from '@mfro/vue-ui'
 
@@ -10,6 +9,7 @@ import { initStorage, StorageState } from './modules/storage';
 import { initFilter } from './modules/filter';
 import { initCache } from './modules/cache';
 import { initGraph } from './modules/graph';
+import { initImport } from './modules/import';
 
 export function myReactive<T extends object>(arg: T): ShallowUnwrapRef<T> {
   return shallowReactive(proxyRefs(arg));
@@ -25,6 +25,7 @@ const storage = initStorage(data);
 const filter = initFilter(data);
 const cache = initCache(data, filter);
 const graph = initGraph(data, filter, cache);
+const imports = initImport(data);
 
 const app = createApp(App);
 
@@ -35,6 +36,7 @@ app.provide('storage', storage);
 app.provide('filter', filter);
 app.provide('cache', cache);
 app.provide('graph', graph);
+app.provide('import', imports);
 
 app.mount('#app');
 

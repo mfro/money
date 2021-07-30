@@ -24,6 +24,7 @@
     "@types/gapi.client": "^1.0.5",
     "@types/gapi.client.drive": "^3.0.13",
     "@types/pdf-parse": "^1.1.0",
+    "@types/wicg-file-system-access": "^2020.9.2",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-service": "~4.5.0",

@@ -37,6 +37,14 @@ export async function load(filePath: string) {
   const code = currentUrl.searchParams.get('code');
 
   if (code != null) {
+    const redirect = localStorage.getItem('mfro:debug-redirect');
+    if (redirect) {
+      const url = new URL(redirect);
+      url.searchParams.set('code', code);
+      location.assign(url.toString());
+      assert(false, 'location.assign');
+    }
+
     currentUrl.searchParams.delete('code');
     history.replaceState(null, document.title, currentUrl.toString());
 

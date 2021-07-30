@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-flex grow class="pa-2" style="height: 100%; overflow: hidden">
-      <v-flex column class="mr-2" style="height: 100%; overflow: hidden">
+    <v-flex grow class="pa-2" style="height: 100%">
+      <v-flex column class="mr-2">
         <v-card style="max-height: 100%; overflow: hidden">
           <tag-index :editing="editing" />
         </v-card>
@@ -14,6 +14,14 @@
             @click="storage.save()"
           >
             save
+          </v-button>
+
+          <v-button
+            color="primary"
+            class="mt-2 ml-2"
+            @click="imports.doImport()"
+          >
+            import
           </v-button>
         </v-flex>
       </v-flex>
@@ -65,6 +73,13 @@
             <span class="mr-3" />
 
             <v-button small @click="editing.clear()">clear selection</v-button>
+
+            <v-text-field
+              class="mt-0 ml-3"
+              solo
+              v-model="editingDetails"
+              ref="editingDetailsTextField"
+            />
           </v-flex>
         </v-card>
       </v-flex>
@@ -99,7 +114,7 @@
             </v-button>
           </v-flex>
 
-          <canvas style="flex: 1" :ref="e => graph.canvas = e" />
+          <canvas style="flex: 1" :ref="(e) => (graph.canvas = e)" />
         </v-flex>
       </v-flex>
     </v-flex>
@@ -108,7 +123,7 @@
 </template>
 
 <script>
-import { computed, inject, shallowReactive } from 'vue';
+import { computed, inject, shallowReactive, shallowRef, watch } from 'vue';
 
 import TagIndex from './ui/tag-index';
 import FilterEditor from './ui/filter-editor';
@@ -134,6 +149,7 @@ export default {
     const filter = inject('filter');
     const cache = inject('cache');
     const graph = inject('graph');
+    const imports = inject('import');
 
     const canSave = computed(() => {
       return storage.state == StorageState.changed;
@@ -141,16 +157,46 @@ export default {
 
     const editing = shallowReactive(new Set);
 
+    const editingDetails = computed({
+      get() {
+        const set = new Set();
+        for (const e of editing) {
+          set.add(shallowReactive(e).details);
+        }
+
+        if (set.size == 1) {
+          return [...set][0];
+        }
+
+        return '<different values>';
+      },
+
+      set(v) {
+        for (const e of editing) {
+          shallowReactive(e).details = v;
+        }
+      },
+    })
+
+    const editingDetailsTextField = shallowRef(null);
+
     const sorted = computed(() => {
       return [...data.expenses].reverse()
       // .filter((e) => filter.match(e));
     });
 
+    watch(editing, () => {
+      setTimeout(() => {
+        editingDetailsTextField.value?.focus();
+      }, 0);
+    });
+
     return {
       data, cache, filter, storage, graph,
       canSave,
-      editing,
+      editing, editingDetails, editingDetailsTextField,
       sorted,
+      imports,
     };
   },
 };

@@ -4,9 +4,7 @@
     v-ripple
     v-show="visible"
     :class="{ active: editing.has(expense) }"
-    @click="
-      editing.has(expense) ? editing.delete(expense) : editing.add(expense)
-    "
+    @click="toggle"
   >
     <v-flex justify-start align-center class="date">
       <date :value="expense.transaction.date" />
@@ -23,7 +21,11 @@
     </v-flex>
 
     <v-flex justify-start align-center class="description">
-      <span style="font-family: Roboto Mono; font-size: 0.9em">
+      <span v-if="expense.details">
+        {{ expense.details }}
+      </span>
+
+      <span v-else style="font-family: Roboto Mono; font-size: 0.9em">
         {{ expense.transaction.description }}
       </span>
     </v-flex>
@@ -59,6 +61,13 @@ export default {
     return {
       filter,
       visible,
+
+      toggle() {
+        if (props.editing.has(props.expense))
+          props.editing.delete(props.expense);
+        else
+          props.editing.add(props.expense)
+      },
 
       del() {
         const index = data.expenses.indexOf(props.expense);

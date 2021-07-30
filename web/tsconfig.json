@@ -28,6 +28,7 @@
   },
   "include": [
     "../**/*.ts",
+    "../node_modules/@types/wicg-file-system-access/**/*.ts"
   ],
   "exclude": [
     "node_modules"
